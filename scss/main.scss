@@ -1,0 +1,179 @@
+// Google Fonts
+@import "./colors";
+@import "./fonts/fonts";
+
+// Font Variables
+$font-name: "iA Writer Duospace", sans-serif;
+
+// Theme Variables
+$background-color: #ffffff;
+$text-color: #333333;
+$text-size: 14px;
+$primary-color: #3498db;
+$white-color: #ffffff;
+$share-button-size: 50px;
+
+* {
+  font-family: $font-name;
+}
+
+button.btn {
+  border: none;
+  border-radius: 3px;
+  color: #fff;
+  font-size: $text-size;
+  background: $primary-color;
+  padding: 8px;
+  outline: none;
+  cursor: pointer;
+  margin-right: 10px;
+  margin-left: 0;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0; padding: 0;
+  box-sizing: border-box;
+  background: $background-color;
+  font-size: $text-size;
+
+  #root {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+}
+
+.container {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+
+  .authenticator {
+    $avatar-size: 32px;
+    $margin-size: 5px;
+    position: absolute;
+    top: $margin-size;
+    right: $avatar-size - $margin-size;
+    z-index: 3;
+    .btn {
+      margin: 0;
+    }
+    .user-info {
+      position: relative;
+      .user-avatar {
+        width: $avatar-size;
+        height: $avatar-size;
+        border-radius: 3px;
+      }
+      .user-menu {
+        background: $background-color;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        border-radius: 3px;
+        text-align: right;
+        position: absolute;
+        top: $avatar-size;
+        right: 0;
+        display: none;
+        box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1),
+          0 3px 6px rgba(0, 0, 0, 0.08);
+        li {
+          cursor: pointer;
+          padding: 5px 8px;
+          color: $foreground-color;
+          &:hover {
+            color: $quote-color;
+          }
+        }
+      }
+      &:hover {
+        .user-menu {
+          display: block;
+        }
+      }
+    }
+  }
+
+  .content {
+    flex: 1;
+    position: relative;
+
+    .highlight-layer,
+    .editor-layer {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      padding: 5px 15px;
+      margin: 0;
+      font-size: $text-size;
+      line-height: 20px;
+      border: none;
+      resize: none;
+      tab-size: 2;
+      box-sizing: border-box;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .highlight-layer {
+      z-index: 2;
+      background: transparent;
+      pointer-events: none;
+      overflow-y: auto;
+    }
+
+    textarea {
+      z-index: 1;
+      outline: none;
+      -webkit-text-fill-color: transparent;
+
+      &::-webkit-input-placeholder {
+        -webkit-text-fill-color: initial;
+      }
+
+      &::selection {
+        background: #ffecb3;
+      }
+
+      &::-moz-selection {
+        background: #ffecb3;
+      }
+    }
+  }
+}
+
+.btn {
+  padding: 5px 8px;
+  font-size: $text-size;
+  background: $blue-color;
+}
+
+.msg {
+  padding: 5px 8px;
+  font-size: $text-size;
+  border-radius: 3px;
+  max-width: 350px;
+  margin-top: 5px;
+  transition: 0.5s all;
+  &.closing {
+    opacity: 0;
+  }
+  &.msg-warning {
+    background: rgba($yellow-color, 0.4);
+    color: $foreground-color;
+  }
+}

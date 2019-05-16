@@ -1,0 +1,159 @@
+@import "./colors";
+
+.editor-layer {
+  background: $background-color;
+  caret-color: $foreground-color;
+  &:disabled {
+    background: rgba($quote-color, 0.1);
+    cursor: not-allowed;
+  }
+}
+
+.highlight-layer {
+  color: $foreground-color;
+}
+
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+
+@mixin shadow-border($weight, $color) {
+  box-shadow: 0 $weight 0 0 $color; /* Border bottom */
+  box-shadow: 0 -$weight 0 0 $color; /* Border top */
+  box-shadow: -$weight 0 0 0 $color; /* Border left */
+  box-shadow: $weight 0 0 0 $color; /* Border right */
+  box-shadow: 0 0 0 $weight $color; /* All the borders by using the spread properties */
+}
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+  color: $quote-color;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+  color: $red-color;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-code,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+  color: $orange-color;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+  color: $yellow-color;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+  color: $green-color;
+}
+
+.hljs-bullet {
+  font-weight: bold;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+  color: $blue-color;
+  font-weight: bold;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+  color: $purple-color;
+}
+
+.hljs {
+  display: block;
+  overflow-x: auto;
+  color: $foreground-color;
+  padding: 0.5em;
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: bold;
+}
+
+.marked-list {
+  color: $purple-color;
+
+  &.checked {
+    text-decoration: line-through;
+    opacity: 0.3;
+    color: $quote-color;
+  }
+}
+
+.strikethrough {
+  text-decoration: line-through;
+  opacity: 0.3;
+  color: $quote-color;
+}
+
+.inline-tag {
+  opacity: 0.8;
+  background: $tag-color;
+  color: $white-color;
+  border-radius: 3px;
+  @include shadow-border(2px, $tag-color);
+}
+
+.inline-priority {
+  opacity: 0.8;
+  border-radius: 3px;
+  &.high {
+    color: $white-color;
+    background: $red-color;
+    @include shadow-border(2px, $red-color);
+  }
+  &.medium {
+    color: $white-color;
+    background: $orange-color;
+    @include shadow-border(2px, $orange-color);
+  }
+  &.low {
+    color: $white-color;
+    background: $yellow-color;
+    @include shadow-border(2px, $yellow-color);
+  }
+}
+
+.inline-url {
+  pointer-events: auto;
+  border-radius: 3px;
+  color: $purple-color;
+  $bgcolor: rgba($quote-color, 0.05);
+  background: $bgcolor;
+  @include shadow-border(2px, $bgcolor);
+  text-decoration: none;
+  &:hover {
+    $hover-bgcolor: rgba($quote-color, 0.01);
+    background: $hover-bgcolor;
+    @include shadow-border(2px, $hover-bgcolor);
+  }
+}
