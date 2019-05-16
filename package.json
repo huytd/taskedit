@@ -10,20 +10,12 @@
   "author": "Huy",
   "license": "BSD-2-Clause",
   "dependencies": {
-    "bourbon": "^5.1.0",
-    "fetch": "^1.1.0",
     "firebase": "^6.0.2",
-    "global": "^4.3.2",
-    "highlight": "^0.2.4",
     "highlight.js": "^9.4.0",
     "parcel-bundler": "^1.12.3",
     "prettier": "^1.17.1",
     "react": "^16.0.0",
-    "react-dom": "^16.8.6",
-    "react-highlighter": "^0.3.2",
-    "react-redux": "^4.4.5",
-    "redux": "^3.5.2",
-    "superagent": "^2.1.0"
+    "react-dom": "^16.8.6"
   },
   "devDependencies": {
     "sass": "^1.20.1"
