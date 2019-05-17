@@ -1,6 +1,6 @@
 # A Markdown-based Notepad
 
-Don't think, just use it: [https://markd.one](https://markd.one)
+Don't think, just use it: [https://markdone.now.sh](https://markdone.now.sh)
 
 ![](screenshot.png)
 
@@ -11,7 +11,7 @@ It's just a markdown editor, with no preview, lol.
 Get the source code:
 
 ```
-git clone https://github.com/huytd/notepad
+git clone https://github.com/huytd/markd.one
 ```
 
 **Create the `secret.js` file, based on the template from `example.secret.js`, and fill in your Firebase configuration in it.**
