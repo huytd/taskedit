@@ -5,6 +5,12 @@ import MessageBox from "./MessageBox";
 
 const DB_SAVE_THRESHOLD = 5000;
 
+const BRACKETS = new Map([
+  ["{", "}"],
+  ["[", "]"],
+  ["(", ")"]
+]);
+
 const getDataPath = userId => `/notes/${userId}/doc`;
 const placeHolderContent = `# You can add some checklist
 - [ ] Like this one
@@ -100,14 +106,14 @@ class Notepad extends React.Component {
   syncInputConent(e, element) {
     // sync text
     var textToSync = e.target.value;
-    var keyCode = e.which || e.keyCode;
+    const keyPressed = e.key;
 
     // Only execute when user press ENTER
-    textToSync = this.editAssistantHitReturn(keyCode, element, e, textToSync);
+    textToSync = this.editAssistantHitReturn(keyPressed, element, e, textToSync);
 
-    // User pressed the left bracket [
-    // We'll insert the right bracket and move the cursor to the center
-    textToSync = this.editAssistantHitBracket(keyCode, element, e, textToSync);
+    // User pressed a left bracket (, [, or {
+    // We'll insert a corresponding right bracket and move the cursor to the center
+    textToSync = this.editAssistantHitBracket(keyPressed, element, e, textToSync);
 
     this.syncScroll(element);
 
@@ -122,12 +128,12 @@ class Notepad extends React.Component {
     this.setState({ highlightedHTML: this.highlightCode(textToSync) });
   }
 
-  editAssistantHitBracket(keyCode, element, e, textToSync) {
-    if (keyCode == 219) {
+  editAssistantHitBracket(keyPressed, element, e, textToSync) {
+    if (BRACKETS.has(keyPressed)) {
       var cursorPos = element.selectionStart;
       let left = textToSync.substring(0, cursorPos);
       let right = textToSync.substring(cursorPos);
-      textToSync = left + "[]" + right;
+      textToSync = left + keyPressed + BRACKETS.get(keyPressed) + right;
       element.value = textToSync;
       element.selectionEnd = cursorPos + 1;
       e.preventDefault();
@@ -135,8 +141,8 @@ class Notepad extends React.Component {
     return textToSync;
   }
 
-  editAssistantHitReturn(keyCode, element, e, textToSync) {
-    if (keyCode === 13) {
+  editAssistantHitReturn(keyPressed, element, e, textToSync) {
+    if (keyPressed === "Enter") {
       var cursorPos = element.selectionStart;
       var currentLine = this.lineFromPos(cursorPos, e.target.value);
       var newCursorPos = cursorPos;
