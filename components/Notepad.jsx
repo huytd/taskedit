@@ -1,9 +1,7 @@
 import React from "react";
 import hljs from "highlight.js";
-import firebase from "../firebase";
-import MessageBox from "./MessageBox";
 
-const DB_SAVE_THRESHOLD = 5000;
+const DB_SAVE_THRESHOLD = 500;
 
 const BRACKETS = new Map([
   ["{", "}"],
@@ -11,7 +9,6 @@ const BRACKETS = new Map([
   ["(", ")"]
 ]);
 
-const getDataPath = userId => `/notes/${userId}/doc`;
 const placeHolderContent = `# You can add some checklist
 - [ ] Like this one
 - [x] And mark it as finished
@@ -85,7 +82,7 @@ class Notepad extends React.Component {
     // priority
     codeHighlight = codeHighlight.replace(
       /!(high|medium|low)/gi,
-      (match, priority) =>
+      (_, priority) =>
         `<span class="inline-priority ${priority.toLowerCase()}">!${priority}</span>`
     );
     return codeHighlight;
@@ -117,10 +114,10 @@ class Notepad extends React.Component {
 
     this.syncScroll(element);
 
-    if (window.lastSave && window.database) {
+    if (window.lastSave && window.localStorage) {
       let timeSinceLastSave = Date.now() - window.lastSave;
       if (timeSinceLastSave >= DB_SAVE_THRESHOLD) {
-        window.database.ref(getDataPath(window.userId)).set(element.value);
+        window.localStorage.setItem('note', element.value);
         window.lastSave = Date.now();
       }
     }
@@ -213,15 +210,10 @@ class Notepad extends React.Component {
 
     element.addEventListener("input", e => this.syncInputConent(e, element));
     element.addEventListener("keydown", e => this.syncInputConent(e, element));
-    element.addEventListener("scroll", e => this.syncScroll(element));
+    element.addEventListener("scroll", _ => this.syncScroll(element));
   }
 
   componentDidMount() {
-    window.provider = new firebase.auth.GoogleAuthProvider();
-    window.auth = firebase.auth();
-    window.auth.onAuthStateChanged(this.updateAuth.bind(this));
-    window.database = firebase.database();
-
     this.initEditor();
   }
 
@@ -231,86 +223,16 @@ class Notepad extends React.Component {
       this.editor.focus();
       this.syncText(this.editor);
 
-      this.editor.value = placeHolderContent;
+      this.editor.value = window.localStorage && window.localStorage.getItem('note') || placeHolderContent;
       this.setState({ highlightedHTML: this.highlightCode(this.editor.value) });
+
+      window.lastSave = Date.now();
     }
-  }
-
-  updateAuth(user) {
-    if (user) {
-      window.userId = user.uid;
-      window.database
-        .ref(getDataPath(user.uid))
-        .once("value")
-        .then(data => {
-          window.lastSave = Date.now();
-          this.editor.value = data.val();
-          this.setState({
-            user: {
-              uid: user.uid,
-              name: user.displayName,
-              email: user.email,
-              avatar: user.photoURL
-            },
-            needLogin: false,
-            highlightedHTML: this.highlightCode(this.editor.value)
-          });
-        });
-    } else {
-      this.setState({ needLogin: true });
-    }
-  }
-
-  doLogin() {
-    window.auth
-      .signInWithPopup(window.provider)
-      .then(this.updateAuth.bind(this))
-      .catch(() => {
-        window.userId = null;
-        this.setState({ needLogin: true });
-      });
-  }
-
-  doLogout() {
-    window.auth.signOut().then(() => {
-      this.setState({ user: false, needLogin: true });
-    });
   }
 
   render() {
-    const UserUI = () => {
-      if (this.state.user) {
-        return (
-          <div className="user-info">
-            <img className="user-avatar" src={this.state.user.avatar} />
-            <ul className="user-menu">
-              <li onClick={this.doLogout.bind(this)}>Logout</li>
-            </ul>
-          </div>
-        );
-      } else {
-        if (this.state.needLogin) {
-          return (
-            <div className="container">
-              <button
-                className="btn btn-primary"
-                onClick={this.doLogin.bind(this)}
-              >
-                Login to save your data
-              </button>
-              <MessageBox type="warning">{`Your notes will not be saved until you login. I respect your privacy, I just can't find a better way to save your data if you don't login 😉`}</MessageBox>
-            </div>
-          );
-        } else {
-          return <div className="container">Loading...</div>;
-        }
-      }
-    };
     return (
       <div className="container">
-        <div className="authenticator">
-          <UserUI />
-        </div>
         <div className="content">
           <pre
             ref={ref => (this.editorHighlight = ref)}
