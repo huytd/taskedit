@@ -5,15 +5,22 @@ const DB_SAVE_THRESHOLD = 500;
 
 const BRACKETS = new Map([
   ["{", "}"],
-  ["[", "]"],
   ["(", ")"]
 ]);
 
-const placeHolderContent = `# You can add some checklist
-- [ ] Like this one
-- [x] And mark it as finished
+const GAP_BRACKETS = new Map([
+  ["[", "]"]
+]);
 
-# Or some ordered list
+const placeHolderContent = `Hello! Welcome to Markdone.
+
+# This is a multi-purpose markdown editor
+Aside from writing, you can use it as a task manager:
+
+  [ ] Like this one
+  [x] Mark it as finished by inserting the x between the checkbox
+
+# Or add some ordered list
 1. Like this one
 2. Or this one
 
@@ -28,7 +35,7 @@ But it's \`good\` enough for your notetaking experience.
      "platform": "Web"
    }
 
-You can add a @tag or @longer-tag like this.
+You can add a @tag or @longer-tag like this. You can add some metadata to it, @just(like-this)
 
 And some [clickable link](https://markdone.now.sh) as well!
 
@@ -135,6 +142,15 @@ class Notepad extends React.Component {
       element.selectionEnd = cursorPos + 1;
       e.preventDefault();
     }
+    if (GAP_BRACKETS.has(keyPressed)) {
+      var cursorPos = element.selectionStart;
+      let left = textToSync.substring(0, cursorPos);
+      let right = textToSync.substring(cursorPos);
+      textToSync = left + keyPressed + " " + GAP_BRACKETS.get(keyPressed) + right + " ";
+      element.value = textToSync;
+      element.selectionEnd = cursorPos + 4;
+      e.preventDefault();
+    }
     return textToSync;
   }
 
@@ -177,6 +193,25 @@ class Notepad extends React.Component {
         newCursorPos -= 1;
         dirty = true;
       }
+      // Task list
+      if (previousLine.match(/\[[\ |x]\]/g)) {
+        const prefixMatch = previousLine.match(/(\s+)\[/);
+        const prefix = prefixMatch && prefixMatch[1] || "";
+        lines.splice(currentLine, 0, prefix + "[ ] ");
+        newCursorPos += 5 + prefix.length;
+        dirty = true;
+      }
+      // Exit task list
+      if (previousLine.match(/\[[\ |x]\]\ $/g)) {
+        lines[currentLine] = "";
+        lines[currentLine - 1] = "";
+        if (newCursorPos === textToSync.length) {
+          lines.splice(currentLine, 0, "\n");
+        }
+        newCursorPos -= 1;
+        dirty = true;
+      }
+      // Finishing off editing
       if (dirty) {
         // Join all the lines together (again)
         textToSync = lines.join("\n");
