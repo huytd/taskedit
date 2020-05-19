@@ -24,7 +24,11 @@ html,
 body {
   width: 100%;
   height: 100%;
-  margin: 0; padding: 20px;
+  margin: 0;
+  padding: 20px 30px 20px 20px;
+  @media (max-width: 768px) {
+    padding: 5px 15px 5px 5px;
+  }
   box-sizing: border-box;
   background: $background-color;
   font-size: $text-size;
@@ -49,6 +53,7 @@ body {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 
   .authenticator {
     $avatar-size: 32px;
@@ -100,6 +105,7 @@ body {
   .content {
     flex: 1;
     position: relative;
+    margin-right: -20px;
 
     .highlight-layer,
     .editor-layer {
