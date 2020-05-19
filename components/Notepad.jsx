@@ -67,16 +67,16 @@ class Notepad extends React.Component {
     );
     // checkable todo list
     codeHighlight = codeHighlight.replace(
-      /(\[ \] .*?\n)/g,
-      '<span class="marked-list">$1</span>'
+      /(\[ \])\ (.*?\n)/g,
+      '<span class="marked-list"><span class="invisible">$1</span> $2</span>'
     );
     codeHighlight = codeHighlight.replace(
-      /(\[x\] .*?\n)/g,
-      '<span class="marked-list checked">$1</span>'
+      /(\[x\])\ (.*?\n)/g,
+      '<span class="marked-list checked"><span class="invisible">$1</span> $2</span>'
     );
     // tagging
     codeHighlight = codeHighlight.replace(
-      /@(?=\S*['-]?)([0-9a-zA-Z'-]+)/g,
+      /@(?=\S*['-]?)([0-9a-zA-Z\(\)'"-=]+)/g,
       '<span class="inline-tag">@$1</span>'
     );
     // priority

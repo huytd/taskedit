@@ -1,4 +1,5 @@
 @import "./colors";
+@import "./vars";
 
 .editor-layer {
   background: $background-color;
@@ -51,7 +52,7 @@
 .hljs-params,
 .hljs-meta,
 .hljs-link {
-  color: $orange-color;
+  color: $quote-color;
 }
 
 /* Tomorrow Yellow */
@@ -99,13 +100,32 @@
   font-weight: bold;
 }
 
+.invisible {
+  opacity: 0;
+}
+
 .marked-list {
-  color: $purple-color;
+  position: relative;
+  cursor: pointer;
+  &:before {
+    content: "";
+    display: block;
+    width: $text-size;
+    height: $text-size;
+    border: 2px solid $foreground-color;
+    position: absolute;
+    top: 0; left: 5px;
+    border-radius: 5px;
+  }
 
   &.checked {
+    opacity: 0.7;
+    color: $foreground-color;
     text-decoration: line-through;
-    opacity: 0.3;
-    color: $quote-color;
+    &:before {
+      background-color: $foreground-color;
+      border-color: $foreground-color;
+    }
   }
 }
 

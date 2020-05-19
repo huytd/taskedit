@@ -1,17 +1,7 @@
 // Google Fonts
 @import "./colors";
 @import "./fonts/fonts";
-
-// Font Variables
-$font-name: "iA Writer Duospace", sans-serif;
-
-// Theme Variables
-$background-color: #ffffff;
-$text-color: #333333;
-$text-size: 14px;
-$primary-color: #3498db;
-$white-color: #ffffff;
-$share-button-size: 50px;
+@import "./vars";
 
 * {
   font-family: $font-name;
@@ -34,7 +24,7 @@ html,
 body {
   width: 100%;
   height: 100%;
-  margin: 0; padding: 0;
+  margin: 0; padding: 20px;
   box-sizing: border-box;
   background: $background-color;
   font-size: $text-size;
@@ -50,12 +40,13 @@ body {
 }
 
 .container {
-  width: 100%;
+  max-width: 700px;
   height: 100%;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   position: relative;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
 
@@ -120,7 +111,7 @@ body {
       padding: 5px 15px;
       margin: 0;
       font-size: $text-size;
-      line-height: 20px;
+      line-height: 1.7em;
       border: none;
       resize: none;
       tab-size: 2;
