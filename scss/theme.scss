@@ -116,15 +116,19 @@
     position: absolute;
     top: 0; left: 5px;
     border-radius: 5px;
+    box-shadow: 2px 2px 0px #000;
   }
 
   &.checked {
-    opacity: 0.7;
+    opacity: 0.5;
     color: $foreground-color;
     text-decoration: line-through;
     &:before {
-      background-color: $foreground-color;
-      border-color: $foreground-color;
+      content: "✔";
+      font-weight: bold;
+      text-align: center;
+      line-height: 1.2em;
+      font-size: 0.8em;
     }
   }
 }
