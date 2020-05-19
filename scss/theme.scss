@@ -131,6 +131,19 @@
       font-size: 0.8em;
     }
   }
+
+  &.flagged {
+    color: $red-color;
+    &:before {
+      content: "●";
+      color: $white-color;
+      background-color: rgba($red-color, 0.8);
+      font-weight: bold;
+      text-align: center;
+      line-height: 1.1em;
+      font-size: 0.8em;
+    }
+  }
 }
 
 .strikethrough {

@@ -18,7 +18,8 @@ const placeHolderContent = `Hello! Welcome to Markdone.
 Aside from writing, you can use it as a task manager:
 
   [ ] Like this one
-  [x] Mark it as finished by inserting the x between the checkbox
+  [*] You can flag a task with an asterisk
+  [x] Or mark it as done with an x
 
 # Or add some ordered list
 1. Like this one
@@ -80,6 +81,10 @@ class Notepad extends React.Component {
     codeHighlight = codeHighlight.replace(
       /(\[x\])\ (.*?\n)/g,
       '<span class="marked-list checked"><span class="invisible">$1</span> $2</span>'
+    );
+    codeHighlight = codeHighlight.replace(
+      /(\[\*\])\ (.*?\n)/g,
+      '<span class="marked-list flagged"><span class="invisible">$1</span> $2</span>'
     );
     // tagging
     codeHighlight = codeHighlight.replace(
@@ -194,7 +199,7 @@ class Notepad extends React.Component {
         dirty = true;
       }
       // Task list
-      if (previousLine.match(/\[[\ |x]\]/g)) {
+      if (previousLine.match(/\[[\ |x|\*]\]/g)) {
         const prefixMatch = previousLine.match(/(\s+)\[/);
         const prefix = prefixMatch && prefixMatch[1] || "";
         lines.splice(currentLine, 0, prefix + "[ ] ");
@@ -202,7 +207,7 @@ class Notepad extends React.Component {
         dirty = true;
       }
       // Exit task list
-      if (previousLine.match(/\[[\ |x]\]\ $/g)) {
+      if (previousLine.match(/\[[\ |x|\*]\]\ $/g)) {
         lines[currentLine] = "";
         lines[currentLine - 1] = "";
         if (newCursorPos === textToSync.length) {
