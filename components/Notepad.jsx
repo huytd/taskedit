@@ -76,15 +76,15 @@ class Notepad extends React.Component {
     // checkable todo list
     codeHighlight = codeHighlight.replace(
       /(\[ \])\ (.*?\n)/g,
-      '<span class="marked-list"><span class="invisible">$1</span> $2</span>'
+      '<span class="marked-list" data-find="$1 $2"><span class="invisible">$1</span> $2</span>'
     );
     codeHighlight = codeHighlight.replace(
       /(\[x\])\ (.*?\n)/g,
-      '<span class="marked-list checked"><span class="invisible">$1</span> $2</span>'
+      '<span class="marked-list checked" data-find="$1 $2"><span class="invisible">$1</span> $2</span>'
     );
     codeHighlight = codeHighlight.replace(
       /(\[\*\])\ (.*?\n)/g,
-      '<span class="marked-list flagged"><span class="invisible">$1</span> $2</span>'
+      '<span class="marked-list flagged" data-find="$1 $2"><span class="invisible">$1</span> $2</span>'
     );
     // tagging
     codeHighlight = codeHighlight.replace(
@@ -228,7 +228,7 @@ class Notepad extends React.Component {
     return textToSync;
   }
 
-  syncText(element) {
+  initSyncTextWithKeyboard(element) {
     element.onkeydown = e => {
       // get caret position/selection
       var val = element.value,
@@ -253,6 +253,32 @@ class Notepad extends React.Component {
     element.addEventListener("scroll", _ => this.syncScroll(element));
   }
 
+  componentDidUpdate() {
+    // content event listener
+    document.querySelectorAll("span.marked-list").forEach(el => {
+      if (!el.getAttribute("handled")) {
+        el.setAttribute("handled", true);
+        el.addEventListener("click", e => {
+          const content = e.target.getAttribute('data-find').replace("\n", "");
+          const re = new RegExp(content.replace("[", "\\[").replace("]", "\\\]").replace("*", "\\*"));
+          const newContent = content.replace(/\[([x|\ |*])\]/, (match, currentStatus) => {
+            if (currentStatus === "*") {
+              return "[ ]";
+            }
+            if (currentStatus === "x") {
+              return "[*]";
+            }
+            if (currentStatus === " ") {
+              return "[x]";
+            }
+          });
+          this.editor.value = this.editor.value.replace(re, newContent);
+          this.setState({ highlightedHTML: this.highlightCode(this.editor.value) });
+        });
+      }
+    });
+  }
+
   componentDidMount() {
     this.initEditor();
   }
@@ -261,7 +287,7 @@ class Notepad extends React.Component {
     if (this.editor != null) {
       hljs.initHighlightingOnLoad();
       this.editor.focus();
-      this.syncText(this.editor);
+      this.initSyncTextWithKeyboard(this.editor);
 
       this.editor.value = window.localStorage && window.localStorage.getItem('note') || placeHolderContent;
       this.setState({ highlightedHTML: this.highlightCode(this.editor.value) });

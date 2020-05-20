@@ -106,7 +106,6 @@
 
 .marked-list {
   position: relative;
-  cursor: pointer;
   &:before {
     content: "";
     display: block;
@@ -117,6 +116,8 @@
     top: 0; left: 5px;
     border-radius: 5px;
     box-shadow: 2px 2px 0px #000;
+    cursor: pointer;
+    pointer-events: auto;
   }
 
   &.checked {
