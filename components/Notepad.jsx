@@ -75,16 +75,14 @@ class Notepad extends React.Component {
     );
     // checkable todo list
     codeHighlight = codeHighlight.replace(
-      /(\[ \])\ (.*?\n)/g,
-      '<span class="marked-list" data-find="$1 $2"><span class="invisible">$1</span> $2</span>'
-    );
-    codeHighlight = codeHighlight.replace(
-      /(\[x\])\ (.*?\n)/g,
-      '<span class="marked-list checked" data-find="$1 $2"><span class="invisible">$1</span> $2</span>'
-    );
-    codeHighlight = codeHighlight.replace(
-      /(\[\*\])\ (.*?\n)/g,
-      '<span class="marked-list flagged" data-find="$1 $2"><span class="invisible">$1</span> $2</span>'
+      /(\[[\*|x|\ ]\])\ (.*?\n)/g,
+      (match, p1, p2) => {
+        let type = "";
+        if (p1 === "[x]") type = "checked";
+        if (p1 === "[*]") type = "flagged";
+        const dataSlug = match.replace(/@/g, '@-').replace(/\!/g, '!-');
+        return '<span class="marked-list ' + type + '" data-find="' + dataSlug + '"><span class="invisible">' + p1 + '</span> ' + p2 + '</span>';
+      }
     );
     // tagging
     codeHighlight = codeHighlight.replace(
@@ -259,7 +257,7 @@ class Notepad extends React.Component {
       if (!el.getAttribute("handled")) {
         el.setAttribute("handled", true);
         el.addEventListener("click", e => {
-          const content = e.target.getAttribute('data-find').replace("\n", "");
+          const content = e.target.getAttribute('data-find').replace("\n", "").replace(/@-/g, '@').replace(/!-/g, '!');
           const re = new RegExp(content.replace("[", "\\[").replace("]", "\\\]").replace("*", "\\*"));
           const newContent = content.replace(/\[([x|\ |*])\]/, (match, currentStatus) => {
             if (currentStatus === "*") {
