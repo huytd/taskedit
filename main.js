@@ -13,11 +13,10 @@ import { render } from "react-dom";
 import Notepad from "./components/Notepad";
 import { Header } from "./components/Header";
 import EventEmitter from 'eventemitter3';
-// import Parse from 'parse/node';
+import Parse from './parse.min.js';
 
 Parse.initialize(process.env.PARSE_APP_ID);
 Parse.serverURL = process.env.PARSE_SERVER_URL;
-Parse.setAsyncStorage(window.localStorage);
 
 const App = () => {
   const events = new EventEmitter();
