@@ -6,3 +6,4 @@ bundle.js
 dist
 yarn-error.log
 secret.js
+.env

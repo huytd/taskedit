@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import hljs from "highlight.js";
 
 const DB_SAVE_THRESHOLD = 500;
@@ -12,7 +12,7 @@ const GAP_BRACKETS = new Map([
   ["[", "]"]
 ]);
 
-const placeHolderContent = `Hello! Welcome to Markdone.
+const placeHolderContent = `Hello! Welcome to TaskEdit.
 
 # This is a multi-purpose markdown editor
 Aside from writing, you can use it as a task manager:
@@ -38,21 +38,46 @@ But it's \`good\` enough for your notetaking experience.
 
 You can add a @tag or @longer-tag like this. You can add some metadata to it, @just(like-this)
 
-And some [clickable link](https://markdone.now.sh) as well!
+And some [clickable link](https://taskedit.org) as well!
 
 You can prioritize your task using !high or !medium or !low.`;
 
-class Notepad extends React.Component {
-  constructor() {
-    super();
-    this.state = {
-      highlightedHTML: "",
-      user: false,
-      needLogin: false
-    };
-  }
+const Notepad = ({ parse, events }) => {
+  const Parse = parse;
+  const Note = Parse.Object.extend("Note");
+  const editorHighlight = useRef();
+  const editor = useRef();
 
-  highlightCode(input) {
+  const [currentUser, setCurrentUser] = useState(Parse.User.current());
+
+  useEffect(() => {
+    events.on('userUpdated', () => {
+      setCurrentUser(Parse.User.current());
+    });
+  }, []);
+
+  useEffect(() => {
+    if (currentUser) {
+      (async () => {
+        events.emit("loading");
+        const query = new Parse.Query(Note);
+        query.equalTo("user", currentUser.get("username"));
+        const notes = await query.find();
+        if (notes && notes[1]) {
+          const content = notes[1].get("content");
+          editor.current.value = content;
+          setState({ highlightedHTML: highlightCode(editor.current.value) });
+          events.emit("done");
+        }
+      })();
+    }
+  }, [currentUser]);
+
+  const [state, setState] = useState({
+    highlightedHTML: "",
+  });
+
+  const highlightCode = (input) => {
     // at the end of the textarea, there will always be an extra space, so
     // we add an extra space here to match it.
     var codeHighlight = hljs.highlight("markdown", input).value + "\n\n";
@@ -96,46 +121,72 @@ class Notepad extends React.Component {
         `<span class="inline-priority ${priority.toLowerCase()}">!${priority}</span>`
     );
     return codeHighlight;
-  }
+  };
 
-  syncScroll(element) {
-    this.editorHighlight.scrollTop = element.scrollTop;
-  }
+  const syncScroll = (element) => {
+    editorHighlight.current.scrollTop = element.scrollTop;
+  };
 
-  lineFromPos(p, text) {
+  const lineFromPos = (p, text) => {
     let count = 0;
     for (var i = 0; i < p; i++) {
       if (text[i] === "\n") count++;
     }
     return count + 1;
-  }
+  };
 
-  syncInputConent(e, element) {
+  const saveContent = () => {
+    if (window.lastSave) {
+      let timeSinceLastSave = Date.now() - window.lastSave;
+      if (timeSinceLastSave >= DB_SAVE_THRESHOLD) {
+        const currentUser = Parse.User.current();
+        if (currentUser) {
+          (async () => {
+            events.emit("saving");
+            const query = new Parse.Query(Note);
+            query.equalTo("user", currentUser.get("username"));
+            const notes = await query.find();
+            let note = null;
+            if (notes && notes[1]) {
+              note = notes[1];
+            } else {
+              note = new Note();
+            }
+            note.setACL(new Parse.ACL(currentUser));
+            note.set("content", editor.current.value);
+            note.set("user", currentUser.get("username"));
+            await note.save();
+            window.lastSave = Date.now();
+            events.emit("done");
+          })();
+        } else {
+          window.localStorage?.setItem("notes", editor.current.value);
+          window.lastSave = Date.now();
+        }
+      }
+    }
+  };
+
+  const syncInputConent = (e, element) => {
     // sync text
     var textToSync = e.target.value;
     const keyPressed = e.key;
 
     // Only execute when user press ENTER
-    textToSync = this.editAssistantHitReturn(keyPressed, element, e, textToSync);
+    textToSync = editAssistantHitReturn(keyPressed, element, e, textToSync);
 
     // User pressed a left bracket (, [, or {
     // We'll insert a corresponding right bracket and move the cursor to the center
-    textToSync = this.editAssistantHitBracket(keyPressed, element, e, textToSync);
+    textToSync = editAssistantHitBracket(keyPressed, element, e, textToSync);
 
-    this.syncScroll(element);
+    syncScroll(element);
 
-    if (window.lastSave && window.localStorage) {
-      let timeSinceLastSave = Date.now() - window.lastSave;
-      if (timeSinceLastSave >= DB_SAVE_THRESHOLD) {
-        window.localStorage.setItem('note', element.value);
-        window.lastSave = Date.now();
-      }
-    }
+    saveContent();
 
-    this.setState({ highlightedHTML: this.highlightCode(textToSync) });
-  }
+    setState({ highlightedHTML: highlightCode(textToSync) });
+  };
 
-  editAssistantHitBracket(keyPressed, element, e, textToSync) {
+  const editAssistantHitBracket = (keyPressed, element, e, textToSync) => {
     if (BRACKETS.has(keyPressed)) {
       var cursorPos = element.selectionStart;
       let left = textToSync.substring(0, cursorPos);
@@ -155,12 +206,12 @@ class Notepad extends React.Component {
       e.preventDefault();
     }
     return textToSync;
-  }
+  };
 
-  editAssistantHitReturn(keyPressed, element, e, textToSync) {
+  const editAssistantHitReturn = (keyPressed, element, e, textToSync) => {
     if (keyPressed === "Enter") {
       var cursorPos = element.selectionStart;
-      var currentLine = this.lineFromPos(cursorPos, e.target.value);
+      var currentLine = lineFromPos(cursorPos, e.target.value);
       var newCursorPos = cursorPos;
       var lines = textToSync.split("\n");
       let dirty = false;
@@ -224,9 +275,9 @@ class Notepad extends React.Component {
       }
     }
     return textToSync;
-  }
+  };
 
-  initSyncTextWithKeyboard(element) {
+  const initSyncTextWithKeyboard = (element) => {
     element.onkeydown = e => {
       // get caret position/selection
       var val = element.value,
@@ -246,72 +297,77 @@ class Notepad extends React.Component {
       }
     };
 
-    element.addEventListener("input", e => this.syncInputConent(e, element));
-    element.addEventListener("keydown", e => this.syncInputConent(e, element));
-    element.addEventListener("scroll", _ => this.syncScroll(element));
-  }
+    element.addEventListener("input", e => syncInputConent(e, element));
+    element.addEventListener("keydown", e => syncInputConent(e, element));
+    element.addEventListener("scroll", _ => syncScroll(element));
+  };
 
-  componentDidUpdate() {
-    // content event listener
-    document.querySelectorAll("span.marked-list").forEach(el => {
-      if (!el.getAttribute("handled")) {
-        el.setAttribute("handled", true);
-        el.addEventListener("click", e => {
-          const content = e.target.getAttribute('data-find').replace("\n", "").replace(/@-/g, '@').replace(/!-/g, '!');
-          const re = new RegExp(content.replace("[", "\\[").replace("]", "\\\]").replace("*", "\\*"));
-          const newContent = content.replace(/\[([x|\ |*])\]/, (match, currentStatus) => {
-            if (currentStatus === "*") {
-              return "[ ]";
-            }
-            if (currentStatus === "x") {
-              return "[*]";
-            }
-            if (currentStatus === " ") {
-              return "[x]";
-            }
+  const mounted = useRef();
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+    } else {
+      document.querySelectorAll("span.marked-list").forEach(el => {
+        if (!el.getAttribute("handled")) {
+          el.setAttribute("handled", true);
+          el.addEventListener("click", e => {
+            const content = e.target.getAttribute('data-find').replace("\n", "").replace(/@-/g, '@').replace(/!-/g, '!');
+            const re = new RegExp(content.replace("[", "\\[").replace("]", "\\\]").replace("*", "\\*"));
+            const newContent = content.replace(/\[([x|\ |*])\]/, (match, currentStatus) => {
+              if (currentStatus === "*") {
+                return "[ ]";
+              }
+              if (currentStatus === "x") {
+                return "[*]";
+              }
+              if (currentStatus === " ") {
+                return "[x]";
+              }
+            });
+            editor.current.value = editor.current.value.replace(re, newContent);
+            setState({ highlightedHTML: highlightCode(editor.current.value) });
+            saveContent();
           });
-          this.editor.value = this.editor.value.replace(re, newContent);
-          this.setState({ highlightedHTML: this.highlightCode(this.editor.value) });
-        });
-      }
-    });
-  }
+        }
+      });
+    }
+  });
 
-  componentDidMount() {
-    this.initEditor();
-  }
-
-  initEditor() {
-    if (this.editor != null) {
+  const initEditor = () => {
+    if (editor.current) {
       hljs.initHighlightingOnLoad();
-      this.editor.focus();
-      this.initSyncTextWithKeyboard(this.editor);
+      editor.current.focus();
+      initSyncTextWithKeyboard(editor.current);
 
-      this.editor.value = window.localStorage && window.localStorage.getItem('note') || placeHolderContent;
-      this.setState({ highlightedHTML: this.highlightCode(this.editor.value) });
+      if (!currentUser) {
+        editor.current.value = window.localStorage?.getItem("notes") || placeHolderContent;
+        setState({ highlightedHTML: highlightCode(editor.current.value) });
+      }
 
       window.lastSave = Date.now();
     }
-  }
+  };
 
-  render() {
-    return (
-      <div className="container">
-        <div className="content">
-          <pre
-            ref={ref => (this.editorHighlight = ref)}
-            className="highlight-layer"
-            dangerouslySetInnerHTML={{ __html: this.state.highlightedHTML }}
-          />
-          <textarea
-            className="editor-layer"
-            ref={ref => (this.editor = ref)}
-            placeholder="Don't think, just type..."
-          />
-        </div>
+  useEffect(() => {
+    initEditor();
+  }, []);
+
+  return (
+    <div className="container">
+      <div className="content">
+        <pre
+          ref={editorHighlight}
+          className="highlight-layer"
+          dangerouslySetInnerHTML={{ __html: state.highlightedHTML }}
+        />
+        <textarea
+          className="editor-layer"
+          ref={editor}
+          placeholder="Don't think, just type..."
+        />
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
 export default Notepad;

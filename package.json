@@ -10,13 +10,15 @@
   "author": "Huy",
   "license": "BSD-2-Clause",
   "dependencies": {
+    "eventemitter3": "^4.0.4",
     "highlight.js": "^9.4.0",
+    "parse": "^2.13.0",
     "react": "^16.0.0",
     "react-dom": "^16.8.6"
   },
   "devDependencies": {
-    "sass": "^1.20.1",
     "parcel-bundler": "^1.12.3",
-    "prettier": "^1.17.1"
+    "prettier": "^1.17.1",
+    "sass": "^1.20.1"
   }
 }

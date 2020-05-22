@@ -1,48 +1,14 @@
-# A Markdown-based Notepad
+# TaskEdit - A multi-purpose Markdown-based Notepad
 
-Don't think, just use it: [https://markdone.now.sh](https://markdone.now.sh)
+Don't think, just use it: [https://taskedit.org](https://taskedit.org)
 
 ![](screenshot.png)
 
-It's just a markdown editor, with no preview, lol.
-
-## How to get started
-
-Get the source code:
-
-```
-git clone https://github.com/huytd/markd.one
-```
-
-**Create the `secret.js` file, based on the template from `example.secret.js`, and fill in your Firebase configuration in it.**
-
-```
-mv example.secret.js secret.js
-```
-
-Install the dependencies:
-
-```
-yarn install
-```
-
-Run the dev server:
-
-```
-yarn dev
-```
-
-When you are ready to deploy:
-
-```
-yarn build
-```
-
-And your stuff are ready in `dist` folder, you can deploy it, for example, using `now.sh`.
+It's more than just a markdown editor, with no preview, lol.
 
 ## Contribution
 
-Just commit, push and create [Pull Request](https://github.com/huytd/notepad/pulls) (if you want :P, but yes, please)
+Just commit, push and create [Pull Request](https://github.com/huytd/taskedit/pulls) (if you want :P, but yes, please)
 
 ## License
 
