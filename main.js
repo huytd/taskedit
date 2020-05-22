@@ -8,7 +8,7 @@ import { render } from "react-dom";
 import Notepad from "./components/Notepad";
 import { Header } from "./components/Header";
 import EventEmitter from 'eventemitter3';
-import Parse from 'parse';
+import Parse from 'parse/node';
 
 Parse.initialize(process.env.PARSE_APP_ID);
 Parse.serverURL = process.env.PARSE_SERVER_URL;
