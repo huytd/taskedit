@@ -1,3 +1,8 @@
+import 'regenerator-runtime/runtime';
+import 'core-js/es6/symbol';
+import 'core-js/es6/set';
+import 'core-js/es6/map';
+
 /* Loading resources in webpack way */
 import "./scss/main.scss";
 import "./scss/theme.scss";
@@ -8,10 +13,11 @@ import { render } from "react-dom";
 import Notepad from "./components/Notepad";
 import { Header } from "./components/Header";
 import EventEmitter from 'eventemitter3';
-import Parse from 'parse/node';
+// import Parse from 'parse/node';
 
 Parse.initialize(process.env.PARSE_APP_ID);
 Parse.serverURL = process.env.PARSE_SERVER_URL;
+Parse.setAsyncStorage(window.localStorage);
 
 const App = () => {
   const events = new EventEmitter();
