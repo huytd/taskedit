@@ -7,3 +7,6 @@ dist
 yarn-error.log
 secret.js
 .env
+.now
+.env.production
+logs

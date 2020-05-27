@@ -2,17 +2,25 @@
   "name": "markdone",
   "version": "1.0.0",
   "description": "A tool to get thing done with Markdown",
-  "browser": "main.js",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "dev": "parcel ./index.html",
     "build": "parcel build ./index.html --no-source-maps --target=browser",
-    "pretty": "prettier --no-config --write *.js **/*.jsx **/*.scss"
+    "pretty": "prettier --no-config --write *.js **/*.jsx **/*.scss",
+    "server:dev": "nodenv server.js"
   },
   "author": "Huy",
   "license": "BSD-2-Clause",
   "dependencies": {
+    "dotenv": "^8.2.0",
     "eventemitter3": "^4.0.4",
+    "express": "^4.17.1",
+    "helmet": "^3.22.0",
     "highlight.js": "^9.4.0",
+    "node-env-run": "^3.0.2",
+    "parse": "^2.13.0",
+    "parse-server": "^4.2.0",
     "react": "^16.0.0",
     "react-dom": "^16.8.6"
   },
