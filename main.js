@@ -5,7 +5,6 @@ import 'core-js/es6/map';
 
 /* Loading resources in webpack way */
 import "./scss/main.scss";
-import "./scss/theme.scss";
 
 /* Main program */
 import React from "react";

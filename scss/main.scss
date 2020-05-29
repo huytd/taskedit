@@ -2,6 +2,7 @@
 @import "./colors";
 @import "./fonts/fonts";
 @import "./vars";
+@import "./theme";
 
 * {
   font-family: $font-name;
@@ -20,6 +21,25 @@ button.btn {
   &.svg {
     padding: 2px 4px;
     background: transparent;
+    line-height: 0;
+
+    &.with-text {
+      background: lighten($quote-color, 45%);
+      padding-left: 8px;
+      padding-right: 8px;
+
+      &:hover {
+        background: lighten($quote-color, 50%);
+      }
+
+      span {
+        color: $foreground-color;
+        display: inline-block;
+        float: right;
+        line-height: 26px;
+        padding-left: 5px;
+      }
+    }
   }
 }
 
@@ -240,7 +260,7 @@ body {
     label {
       width: 30%;
     }
-    input {
+    .right {
       flex: 1;
     }
   }

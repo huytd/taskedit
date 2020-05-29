@@ -14,33 +14,35 @@ const GAP_BRACKETS = new Map([
 
 const placeHolderContent = `Hello! Welcome to TaskEdit.
 
-# This is a multi-purpose markdown editor
-Aside from writing, you can use it as a task manager:
+This is a multi-purpose editor, you can use it for all kind of writing.
 
-  [ ] Like this one
-  [*] You can flag a task with an asterisk
-  [x] Or mark it as done with an x
+Aside from writing, you can even use it as a task manager.
 
-# Or add some ordered list
-1. Like this one
-2. Or this one
+# Project A
 
-You can put some **note** here _as well_.
+@todo
 
-> Basically, not ~~all markdown _are_ supported~~.
+  [x] Build the first prototype !high
+  [ ] Fix the bugs !medium
 
-But it's \`good\` enough for your notetaking experience.
+@finished
 
-   {
-     "app": "Markdone",
-     "platform": "Web"
-   }
+  [ ] Have an idea
+  [*] Procrastinate for 300 days
 
-You can add a @tag or @longer-tag like this. You can add some metadata to it, @just(like-this)
+# Project B
 
-And some [clickable link](https://taskedit.org) as well!
+@due(today)
 
-You can prioritize your task using !high or !medium or !low.`;
+  [ ] Pay utility bill
+  [x] Refill water bottle !low
+
+Notes are stored locally in your browser. If you want to edit it on another devices, or share it with anyone else, you can hit the Share button to get the shareable (and encrypted!) note's URL.
+
+Shared notes are saved on TaskEdit server and uses end-to-end encryption, the encryption key are generated locally on your browser, embed to the URL as a hash, so it won't be visible to the server side. Your data will stay private and only visible to whoever has access to the document's URL.
+
+Have fun!
+`;
 
 const Notepad = ({ parse, events }) => {
   const Parse = parse;
@@ -159,9 +161,6 @@ const Notepad = ({ parse, events }) => {
             window.lastSave = Date.now();
             events.emit("done");
           })();
-        } else {
-          window.localStorage?.setItem("notes", editor.current.value);
-          window.lastSave = Date.now();
         }
       }
     }
@@ -340,7 +339,7 @@ const Notepad = ({ parse, events }) => {
       initSyncTextWithKeyboard(editor.current);
 
       if (!currentUser) {
-        editor.current.value = window.localStorage?.getItem("notes") || placeHolderContent;
+        editor.current.value = placeHolderContent;
         setState({ highlightedHTML: highlightCode(editor.current.value) });
       }
 
