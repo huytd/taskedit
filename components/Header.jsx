@@ -5,6 +5,7 @@ export const Header = ({ parse, events }) => {
   const [expanded, setExpanded] = useState(false);
   const [status, setStatus] = useState("");
   const [failedState, setFailedState] = useState(false);
+  const [isSharable, setSharable] = useState(false);
 
   events.on("saving", () => {
     setStatus("saving notes...");
@@ -20,6 +21,7 @@ export const Header = ({ parse, events }) => {
 
   events.on("loading", () => {
     setStatus("loading...");
+    setSharable(true);
   });
 
   const shareNoteHandler = () => {
@@ -41,7 +43,10 @@ export const Header = ({ parse, events }) => {
     { expanded && <div className="control-section">
       <div className="section">
         <label>Your encrypted note URL: </label>
-        <input type="text" className="textbox right" defaultValue=""></input>
+        {isSharable && <input type="text" className="textbox right" defaultValue={window.location}></input>}
+        {!isSharable && <div className="right">
+          Click on the Share button to generate sharable link.
+          </div>}
       </div>
       <div className="section">
         Keep this URL for yourself, use it to access this document on another devices, or share it only with the person you trust. Anyone with this URL will be able to read and write to this encrypted document.
