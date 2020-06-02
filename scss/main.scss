@@ -210,6 +210,8 @@ body {
   display: flex;
   flex-direction: row;
   font-size: 0.8em;
+  height: 35px;
+  margin-top: 5px;
 
   .separator {
     flex: 1;
@@ -262,6 +264,25 @@ body {
     }
     .right {
       flex: 1;
+    }
+  }
+}
+
+.error-screen {
+  padding: 20px;
+  text-align: center;
+  line-height: 1.8em;
+
+  a {
+    background: $foreground-color;
+    color: $background-color;
+    padding: 3px 8px;
+    border-radius: 5px;
+    text-decoration: none;
+    border: 2px solid $foreground-color;
+
+    &:hover {
+      opacity: 0.7;
     }
   }
 }

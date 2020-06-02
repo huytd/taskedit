@@ -17,11 +17,14 @@ import Parse from './parse.min.js';
 Parse.initialize(process.env.PARSE_APP_ID);
 Parse.serverURL = process.env.PARSE_SERVER_URL;
 
+let searchParams = new URLSearchParams(window.location.search);
+let noteId = searchParams.get('note');
+
 const App = () => {
   const events = new EventEmitter();
   return <>
     <Header parse={Parse} events={events} />
-    <Notepad parse={Parse} events={events} />
+    <Notepad parse={Parse} events={events} noteId={noteId} />
   </>;
 }
 

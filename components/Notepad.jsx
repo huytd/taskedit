@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import hljs from "highlight.js";
+import { encryptDataForSaving, decryptDataForLoading, debounce } from "../utils";
 
-const DB_SAVE_THRESHOLD = 500;
+const DB_SAVE_THRESHOLD = 5000;
 
 const BRACKETS = new Map([
   ["{", "}"],
@@ -39,41 +40,53 @@ Aside from writing, you can even use it as a task manager.
 
 Notes are stored locally in your browser. If you want to edit it on another devices, or share it with anyone else, you can hit the Share button to get the shareable (and encrypted!) note's URL.
 
-Shared notes are saved on TaskEdit server and uses end-to-end encryption, the encryption key are generated locally on your browser, embed to the URL as a hash, so it won't be visible to the server side. Your data will stay private and only visible to whoever has access to the document's URL.
+Shared notes are securely encrypted before saving on TaskEdit server, the encryption key are generated locally on your browser, embed to the URL as a hash and changes everytime you modify the document, so it won't be visible to the server side. Your data will stay private and only visible to whoever has access to the document's URL.
 
 Have fun!
 `;
 
-const Notepad = ({ parse, events }) => {
+const Notepad = ({ parse, events, noteId }) => {
   const Parse = parse;
   const Note = Parse.Object.extend("Note");
   const editorHighlight = useRef();
   const editor = useRef();
-
-  const [currentUser, setCurrentUser] = useState(Parse.User.current());
+  const [failedToLoad, setFailedToLoad] = useState(false);
 
   useEffect(() => {
-    events.on('userUpdated', () => {
-      setCurrentUser(Parse.User.current());
+    events.on('shareNote', () => {
+      saveToServer();
     });
   }, []);
 
+  // load saved notes
   useEffect(() => {
-    if (currentUser) {
+    if (noteId) {
       (async () => {
         events.emit("loading");
-        const query = new Parse.Query(Note);
-        query.equalTo("user", currentUser.get("username"));
-        const notes = await query.find();
-        if (notes && notes[1]) {
-          const content = notes[1].get("content");
-          editor.current.value = content;
-          setState({ highlightedHTML: highlightCode(editor.current.value) });
-          events.emit("done");
+        try {
+          const query = new Parse.Query(Note);
+          query.get(noteId);
+          const notes = await query.find();
+          if (notes && notes[0]) {
+            const keyHash = window.location.hash.slice('#key='.length);
+            const rawContent = notes[0].get('content');
+            const decoded = rawContent.split(",").map(c => +c);
+            const decodedBuffer = new Uint8Array(decoded).buffer;
+            const data = await decryptDataForLoading(decodedBuffer, keyHash);
+            editor.current.value = data;
+            setState({ highlightedHTML: highlightCode(editor.current.value) });
+            events.emit("done");
+          } else {
+            setFailedToLoad(true);
+            events.emit("error");
+          }
+        } catch {
+          setFailedToLoad(true);
+          events.emit("error");
         }
       })();
     }
-  }, [currentUser]);
+  }, []);
 
   const [state, setState] = useState({
     highlightedHTML: "",
@@ -137,34 +150,51 @@ const Notepad = ({ parse, events }) => {
     return count + 1;
   };
 
-  const saveContent = () => {
+  // TODO: There's an issue with the encoding of the data when saved to server and getting it back
+  const saveToServer = () => {
+    (async () => {
+      events.emit("saving");
+      const query = new Parse.Query(Note);
+      query.get(noteId);
+      const notes = await query.find();
+      let note = null;
+      if (notes && notes[0]) {
+        note = notes[0];
+      } else {
+        note = new Note();
+      }
+
+      const content = editor.current.value;
+      const encrypted = await encryptDataForSaving(content);
+      const savableContent = Array.from(new Uint8Array(encrypted.data)).join(",");
+      note.set("content", savableContent);
+
+      const result = await note.save();
+      const savedNoteId = result.id;
+      window.lastSave = Date.now();
+      // This is the first time saving, so we redirect
+      if (savedNoteId) {
+        const url = `/?note=${savedNoteId}#key=${encrypted.key}`;
+        window.location.href = url;
+      }
+
+      events.emit("done");
+    })();
+  };
+
+  const autoSaveContent = debounce(() => {
     if (window.lastSave) {
       let timeSinceLastSave = Date.now() - window.lastSave;
       if (timeSinceLastSave >= DB_SAVE_THRESHOLD) {
-        const currentUser = Parse.User.current();
-        if (currentUser) {
-          (async () => {
-            events.emit("saving");
-            const query = new Parse.Query(Note);
-            query.equalTo("user", currentUser.get("username"));
-            const notes = await query.find();
-            let note = null;
-            if (notes && notes[1]) {
-              note = notes[1];
-            } else {
-              note = new Note();
-            }
-            note.setACL(new Parse.ACL(currentUser));
-            note.set("content", editor.current.value);
-            note.set("user", currentUser.get("username"));
-            await note.save();
-            window.lastSave = Date.now();
-            events.emit("done");
-          })();
+        if (noteId) {
+          saveToServer();
+        } else {
+          window.localStorage.setItem('notes', editor.current.value);
+          window.lastSave = Date.now();
         }
       }
     }
-  };
+  }, 500);
 
   const syncInputConent = (e, element) => {
     // sync text
@@ -180,7 +210,7 @@ const Notepad = ({ parse, events }) => {
 
     syncScroll(element);
 
-    saveContent();
+    autoSaveContent();
 
     setState({ highlightedHTML: highlightCode(textToSync) });
   };
@@ -199,7 +229,7 @@ const Notepad = ({ parse, events }) => {
       var cursorPos = element.selectionStart;
       let left = textToSync.substring(0, cursorPos);
       let right = textToSync.substring(cursorPos);
-      textToSync = left + keyPressed + " " + GAP_BRACKETS.get(keyPressed) + right + " ";
+      textToSync = left + keyPressed + " " + GAP_BRACKETS.get(keyPressed) + " " + right;
       element.value = textToSync;
       element.selectionEnd = cursorPos + 4;
       e.preventDefault();
@@ -256,8 +286,8 @@ const Notepad = ({ parse, events }) => {
       }
       // Exit task list
       if (previousLine.match(/\[[\ |x|\*]\]\ $/g)) {
-        lines[currentLine] = "";
         lines[currentLine - 1] = "";
+        lines[currentLine] = "";
         if (newCursorPos === textToSync.length) {
           lines.splice(currentLine, 0, "\n");
         }
@@ -325,7 +355,7 @@ const Notepad = ({ parse, events }) => {
             });
             editor.current.value = editor.current.value.replace(re, newContent);
             setState({ highlightedHTML: highlightCode(editor.current.value) });
-            saveContent();
+            autoSaveContent();
           });
         }
       });
@@ -338,8 +368,8 @@ const Notepad = ({ parse, events }) => {
       editor.current.focus();
       initSyncTextWithKeyboard(editor.current);
 
-      if (!currentUser) {
-        editor.current.value = placeHolderContent;
+      if (!noteId) {
+        editor.current.value = window.localStorage.getItem('notes') || placeHolderContent;
         setState({ highlightedHTML: highlightCode(editor.current.value) });
       }
 
@@ -351,7 +381,12 @@ const Notepad = ({ parse, events }) => {
     initEditor();
   }, []);
 
-  return (
+  return failedToLoad ? <>
+    <div className="error-screen">
+      <div>Sorry, look like you can't access this document!</div>
+      <div>Would you like to <a href="/">create a new document</a> instead?</div>
+    </div>
+  </> : (
     <div className="container">
       <div className="content">
         <pre
