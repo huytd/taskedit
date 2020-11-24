@@ -12,7 +12,7 @@
   "license": "BSD-2-Clause",
   "dependencies": {
     "eventemitter3": "^4.0.4",
-    "highlight.js": "^9.4.0",
+    "highlight.js": "^10.1.2",
     "react": "^16.0.0",
     "react-dom": "^16.8.6",
     "utfx": "^1.0.1"
